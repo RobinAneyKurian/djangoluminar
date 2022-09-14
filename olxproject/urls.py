@@ -15,7 +15,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+# from api.views import ProductsView
+# from api.views import Greetings, Add, AddView
+from api.views import Findcube, Numcheck, Numfactorial, Wordcount, Palindrome, Armstrong, Primenumber
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('cube', Findcube.as_view()),
+    path('numcheck', Numcheck.as_view()),
+    path('factorial', Numfactorial.as_view()),
+    path('wordcount', Wordcount.as_view()),
+    path("palindrome", Palindrome.as_view()),
+    path("armstrong", Armstrong.as_view()),
+    path("primenumber", Primenumber.as_view())
+    # path('products/', ProductsView.as_view()),
+    # path('greetings/', Greetings.as_view()),
+    # path('add/', Add.as_view()),
+    # path('addnumbers/', AddView.as_view()),
 ]

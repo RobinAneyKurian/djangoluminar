@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 class Products(models.Model):
     items = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
@@ -9,3 +7,9 @@ class Products(models.Model):
     company = models.CharField(max_length=100)
     stock = models.PositiveIntegerField(default=1)
 
+ORM query for creating an Object
+================================
+
+Modelname.objects.create(field1=name, field2=value.....)
+
+Books.objects.create(items="Mobile", name="Samsung", price=20000, company="Samsung", stock=50)
