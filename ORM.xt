@@ -7,7 +7,7 @@ class Products(models.Model):
     company = models.CharField(max_length=100)
     stock = models.PositiveIntegerField(default=1)
 
-ORM query for creating an Object
+ORM(Object Relational Mapping) query for creating an Object
 ================================
 
 Modelname.objects.create(field1=name, field2=value.....)

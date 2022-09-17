@@ -2,7 +2,8 @@ from django.shortcuts import render
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from api.models import Books
+from api.serializer import BookSerializer
 # class ProductsView(APIView):
 #
 #     def get(self, request,*args, **kwargs):
@@ -121,3 +122,41 @@ class Primenumber(APIView):
         return Response(data=is_prime_number)
 
 
+
+
+
+class Products(APIView):
+
+    def get(self, request, *args, **kwargs):
+        get_data = Books.objects.all()
+        serializer = BookSerializer(get_data, many=True)
+        return Response(data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        # book_name = request.data.get("name")
+        # book_author = request.data.get("author")
+        # book_price = request.data.get("price")
+        # book_publisher = request.data.get("publisher")
+        # book_quantity = request.data.get("quantity")
+        # Books.objects.create(Name=book_name, Author=book_author, Price=book_price, Publisher=book_publisher, Qty=book_quantity)
+        # return Response(data="A new book created")
+
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            Books.objects.create(**serializer.validated_data)
+            return Response(data=serializer.data)
+        else:
+            return Response(data=serializer.errors)
+
+
+class ProductDetailsView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        book = Books.objects.get(id=id)
+        serializer = BookSerializer(book, many=False)
+        return Response(data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        Books.objects.get(id=id).delete()
+        return Response(data = f"The Book {id} is deleted")

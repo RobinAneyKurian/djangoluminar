@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 # from api.views import ProductsView
 # from api.views import Greetings, Add, AddView
-from api.views import Findcube, Numcheck, Numfactorial, Wordcount, Palindrome, Armstrong, Primenumber
+from api.views import Findcube, Numcheck, Numfactorial, Wordcount, Palindrome, Armstrong, Primenumber, Products, ProductDetailsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,7 +27,9 @@ urlpatterns = [
     path('wordcount', Wordcount.as_view()),
     path("palindrome", Palindrome.as_view()),
     path("armstrong", Armstrong.as_view()),
-    path("primenumber", Primenumber.as_view())
+    path("primenumber", Primenumber.as_view()),
+    path('products', Products.as_view()),
+    path('products/<int:id>', ProductDetailsView.as_view()),
     # path('products/', ProductsView.as_view()),
     # path('greetings/', Greetings.as_view()),
     # path('add/', Add.as_view()),
