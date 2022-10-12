@@ -1,9 +1,18 @@
 from django.shortcuts import render
-
+from django.db import models
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from api.models import Books
-from api.serializer import BookSerializer
+from api.models import Books, Reviews
+from api.serializer import  ReviewModelSerializer, BookSerializer, UserModelSerializer
+
+from django.contrib.auth.models import User
+
+from rest_framework import authentication
+from rest_framework import permissions
+
+from rest_framework.decorators import action
+
+
 # class ProductsView(APIView):
 #
 #     def get(self, request,*args, **kwargs):
@@ -127,6 +136,8 @@ class Primenumber(APIView):
 
 class Products(APIView):
 
+
+
     def get(self, request, *args, **kwargs):
         get_data = Books.objects.all()
         serializer = BookSerializer(get_data, many=True)
@@ -160,3 +171,175 @@ class ProductDetailsView(APIView):
         id = kwargs.get("id")
         Books.objects.get(id=id).delete()
         return Response(data = f"The Book {id} is deleted")
+
+    def put(self, request, *args, **kwargs):
+
+        id = kwargs.get("id")
+        serialization = BookSerializer(data=request.data)
+
+        if serialization.is_valid():
+            Books.objects.filter(id=id).update(**serialization.validated_data)
+            return Response(data=serialization.data)
+        else:
+            return Response(data=serialization.errors)
+
+
+
+
+
+# Modelserializer Views
+
+
+class ReviewView(APIView):
+
+    def post(self, request, *args, **kwargs):
+
+        serializer = ReviewModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            return Response(data=serializer.errors)
+
+    def get(self, request, *args, **kwargs):
+
+        get_review = Reviews.objects.all()
+        serializer = ReviewModelSerializer(get_review, many=True)
+        return Response(data=serializer.data)
+
+class ReviewDetails(APIView):
+    def get(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        get_id = Reviews.objects.get(id=id)
+        serializaton = ReviewModelSerializer(get_id, many=False)
+        return Response(data=serializaton.data)
+
+    def delete(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        Reviews.objects.get(id=id).delete()
+        return Response(data=f"The id: {id} is deleted")
+
+    def put(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        get_id = Reviews.objects.get(id=id)
+        serializer = ReviewModelSerializer(instance=get_id, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            return Response(data=serializer.errors)
+
+
+
+
+
+#Using ViewSet to write views instead of APIView
+
+from rest_framework.viewsets import ViewSet, ModelViewSet
+
+class ProductsViewSetView(ViewSet):
+
+    # authentication_classes = [authentication.BasicAuthentication]
+    # authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        get_details = Books.objects.all()
+        serializer = BookSerializer(get_details, many=True)
+        return Response(data=serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = BookSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            return Response(data=serializer.error)
+
+    def retrieve(self, request, *args, **kwargs):
+
+        id = kwargs.get("pk")
+        books = Books.objects.get(id=id)
+        serializer = BookSerializer(books, many=False)
+        return Response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+
+        id = kwargs.get("pk")
+        get_book = Books.objects.get(id=id)
+        serializer = BookSerializer(instance=get_book, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            return Response(data=serializer.errors)
+
+    def destroy(self, request, *args, **kwargs):
+
+        id = kwargs.get("pk")
+        Books.objects.get(id=id).delete()
+        return Response(data= f"The id {id} is deleted")
+
+    @action(methods=["POST"], detail=True)
+    def add_review(self, request, *args, **kwargs):
+        id = kwargs.get("pk")
+        user = request.user
+        book = Books.objects.get(id=id)
+        Reviews.objects.create(book=book,
+                               user=user,
+                               comment=request.data.get("comment"),
+                               rating=request.data.get("rating"))
+        return Response(data="Review created succesfully")
+
+
+    @action(methods=["GET"], detail=True)
+    def get_review(self, request, *args, **kwargs):
+        id = kwargs.get("pk")
+        rev = Books.objects.get(id=id)
+        get_rev = rev.reviews_set.all()
+        serializer = ReviewModelSerializer(get_rev, many=True)
+        return Response(data=serializer.data)
+
+
+
+
+
+
+class ProductModelViewSet(ModelViewSet):
+
+    serializer_class = BookSerializer
+    queryset = Books.objects.all()
+
+    # @action(methods=["POST"], detail=True)
+    # def get_review(self, request, *args, **kwargs):
+    #     return Response(data="Review sucesfully created")
+
+
+class ReviewsModelViewSet(ModelViewSet):
+
+    serializer_class = ReviewModelSerializer
+    queryset = Reviews.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        all_reviews = Reviews.objects.all()
+
+        if 'user' in request.query_params:
+            all_reviews = all_reviews.filter(user=request.query_params.get("user"))
+        serializer = ReviewModelSerializer(all_reviews, many=True)
+        return Response(data=serializer.data)
+
+
+
+
+
+# Password Authentication
+
+
+class UserSerializer(ModelViewSet):
+    serializer_class = UserModelSerializer
+    queryset = User.objects.all()
+
+
+
